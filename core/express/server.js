@@ -246,6 +246,7 @@ function Server(serverConfig = {}) {
         responseComponents.body.message = error.isApplicationError
           ? error.message
           : 'Some error occured.';
+        responseComponents.body.code = error.errorCode;
         responseComponents.body.errors = error.details || undefined;
         responseComponents.body.data = error.context;
 
@@ -274,6 +275,7 @@ function Server(serverConfig = {}) {
   }
 
   function startServer() {
+    // eslint-disable-next-line no-unused-vars
     app.use((_, res, __) => {
       // Global 404 Catcher
       res.status(404).json({
@@ -281,6 +283,7 @@ function Server(serverConfig = {}) {
         message: 'Resource not found.',
       });
     });
+    // eslint-disable-next-line no-unused-vars
     app.use((err, _, res, __) => {
       appLogger.errorX(err, 'global-500-error');
       // Global 500 Catcher

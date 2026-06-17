@@ -16,7 +16,8 @@ async function deleteCard(serviceData) {
   let response;
 
   try {
-    const { slug } = serviceData;
+    // eslint-disable-next-line camelcase
+    const { slug, creator_reference } = serviceData;
 
     // Find the card (including deleted ones to match the check)
     const card = await CreatorCardRepository.findOne({
@@ -24,6 +25,12 @@ async function deleteCard(serviceData) {
     });
 
     if (!card) {
+      throwAppError(CreatorCardMessages.CREATOR_CARD_NOT_FOUND, ERROR_CODE.NF01);
+    }
+
+    // Verify creator ownership before deletion
+    // eslint-disable-next-line camelcase
+    if (card.creator_reference !== creator_reference) {
       throwAppError(CreatorCardMessages.CREATOR_CARD_NOT_FOUND, ERROR_CODE.NF01);
     }
 

@@ -28,6 +28,13 @@ const spec = `root {
   access_code? string<length:6>
 }`;
 
+// Note on max array lengths:
+// The spec does not define explicit array size limits, so we validate at runtime.
+// This prevents DoS attacks where a client sends 10,000+ items per array.
+// - links: Reasonable limit is ~50 (typical creator has <20 social profiles)
+// - rates: Reasonable limit is ~20 (rarely more than 10-15 service tiers)
+// These are validated in createCard() function below via explicit checks.
+
 const parsedSpec = validator.parse(spec);
 
 async function createCard(serviceData) {
@@ -49,11 +56,43 @@ async function createCard(serviceData) {
       throwAppError(CreatorCardMessages.ACCESS_CODE_NOT_ALLOWED_ON_PUBLIC, ERROR_CODE.AC05);
     }
 
+    // Validate array size limits to prevent DoS attacks
+    // Links: max 50 items (creator's social profiles, portfolios, etc.)
+    if (data.links && data.links.length > 50) {
+      throwAppError('Maximum 50 links allowed per card', ERROR_CODE.INVLDDATA);
+    }
+
+    // Service rates: max 20 items (typical use case: <15 service tiers)
+    if (data.service_rates && data.service_rates.rates && data.service_rates.rates.length > 20) {
+      throwAppError('Maximum 20 service rates allowed per card', ERROR_CODE.INVLDDATA);
+    }
+
+    // Validate that service rates amounts are integers (no decimals)
+    if (data.service_rates && data.service_rates.rates) {
+      data.service_rates.rates.forEach((rate) => {
+        if (!Number.isInteger(rate.amount)) {
+          throwAppError(
+            'Service rate amount must be a positive integer (no decimals)',
+            ERROR_CODE.INVLDDATA
+          );
+        }
+      });
+    }
+
     // Handle slug generation and uniqueness
     let finalSlug = data.slug;
     if (!finalSlug) {
       // Auto-generate slug from title
       finalSlug = generateSlug(data.title);
+    } else {
+      // Validate client-provided slug format: alphanumeric, hyphen, underscore only
+      const isValidSlugFormat = /^[a-zA-Z0-9_-]+$/.test(finalSlug);
+      if (!isValidSlugFormat) {
+        throwAppError(
+          'Slug must contain only letters, numbers, hyphens, and underscores',
+          ERROR_CODE.INVLDDATA
+        );
+      }
     }
 
     // Check if slug is taken

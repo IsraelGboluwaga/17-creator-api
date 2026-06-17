@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { throwAppError, ERROR_CODE } = require('@app-core/errors');
 const { appLogger } = require('@app-core/logger');
 const CreatorCardRepository = require('@app/repository/creator-card');
@@ -33,9 +34,19 @@ async function getCard(serviceData) {
         throwAppError(CreatorCardMessages.PRIVATE_CARD_ACCESS_CODE_REQUIRED, ERROR_CODE.AC03);
       }
 
-      // Step 4: Validate access code
-      // eslint-disable-next-line camelcase
-      if (access_code !== card.access_code) {
+      // Step 4: Validate access code (constant-time comparison to prevent timing attacks)
+      try {
+        // eslint-disable-next-line camelcase
+        const isValidCode = crypto.timingSafeEqual(
+          // eslint-disable-next-line camelcase
+          Buffer.from(access_code || ''),
+          Buffer.from(card.access_code || '')
+        );
+        if (!isValidCode) {
+          throwAppError(CreatorCardMessages.INVALID_ACCESS_CODE, ERROR_CODE.AC04);
+        }
+      } catch {
+        // timingSafeEqual throws if buffers are different lengths; treat as invalid
         throwAppError(CreatorCardMessages.INVALID_ACCESS_CODE, ERROR_CODE.AC04);
       }
     }

@@ -11,7 +11,6 @@
   "scripts": {
     "start": "node bootstrap.js",
     "dev": "node bootstrap.js",
-    "build": "echo \"No build step required for this Node.js service\"",
     "lint": "eslint .",
     "test": "mocha",
     "prepare": "husky",

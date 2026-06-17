@@ -6,18 +6,19 @@ const { CreatorCardMessages } = require('@app/messages');
 const serializeCard = require('./serialize-card');
 
 const spec = `root {
+  slug string<trim|minLength:1>
   creator_reference string<length:20>
 }`;
 
 const parsedSpec = validator.parse(spec);
 
-async function deleteCard(serviceData) {
-  validator.validate(serviceData, parsedSpec);
+async function deleteCard(serviceData, options = {}) {
+  const data = validator.validate(serviceData, parsedSpec);
   let response;
 
   try {
     // eslint-disable-next-line camelcase
-    const { slug, creator_reference } = serviceData;
+    const { slug, creator_reference } = data;
 
     // Find the card (including deleted ones to match the check)
     const card = await CreatorCardRepository.findOne({

@@ -12,6 +12,12 @@ module.exports = {
   CREATOR_CARD_NOT_FOUND: 'Creator card not found',
   CREATOR_CARD_DRAFT: 'Creator card not found',
 
+  // Validation errors
+  INVALID_SLUG_FORMAT: 'Slug must contain only letters, numbers, hyphens, and underscores',
+  INVALID_RATE_AMOUNT: 'Service rate amount must be a positive integer (no decimals)',
+  TOO_MANY_LINKS: 'Maximum 50 links allowed per card',
+  TOO_MANY_RATES: 'Maximum 20 service rates allowed per card',
+
   // Success messages
   CREATOR_CARD_CREATED: 'Creator Card Created Successfully.',
   CREATOR_CARD_RETRIEVED: 'Creator Card Retrieved Successfully.',

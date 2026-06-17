@@ -1,25 +1,64 @@
+// Slug helpers.
+//
+// Per the codebase conventions (see README "String Manipulation - No Regex
+// Allowed"), these helpers use only basic string methods and character-code
+// checks. No regular expressions are used anywhere in this module.
+
+// Allowed slug characters: a-z (97-122), A-Z (65-90), 0-9 (48-57),
+// hyphen (45) and underscore (95).
+function isAllowedSlugCharCode(code, allowUppercase) {
+  const isLower = code >= 97 && code <= 122;
+  const isUpper = code >= 65 && code <= 90;
+  const isDigit = code >= 48 && code <= 57;
+  const isSymbol = code === 45 || code === 95;
+
+  return isLower || isDigit || isSymbol || (allowUppercase && isUpper);
+}
+
+// Generate a slug from a title: lowercase, separators collapsed to a single
+// hyphen, and any disallowed characters dropped.
 function generateSlug(title) {
-  // Step 1: Lowercase
-  let slug = title.toLowerCase();
+  const lower = title.toLowerCase().trim();
 
-  // Step 2: Replace whitespace with hyphens
-  slug = slug.replace(/\s+/g, '-');
+  let slug = '';
+  let lastCharWasHyphen = false;
 
-  // Step 3: Remove any characters that are not letters, numbers, hyphens, or underscores
-  slug = slug
-    .split('')
-    .filter((char) => {
-      const code = char.charCodeAt(0);
-      // Allow: a-z (97-122), 0-9 (48-57), hyphen (45), underscore (95)
-      return (
-        (code >= 97 && code <= 122) || (code >= 48 && code <= 57) || code === 45 || code === 95
-      );
-    })
-    .join('');
+  for (let i = 0; i < lower.length; i++) {
+    const char = lower[i];
+    const code = char.charCodeAt(0);
 
-  // Step 4: Ensure slug is between 5 and 50 characters
-  // If too short, we'll append suffix later when checking uniqueness
+    if (isAllowedSlugCharCode(code, false)) {
+      slug += char;
+      lastCharWasHyphen = char === '-';
+    } else if (!lastCharWasHyphen && slug.length > 0) {
+      // Treat whitespace / disallowed characters as a separator.
+      slug += '-';
+      lastCharWasHyphen = true;
+    }
+  }
+
+  // Remove a trailing separator if present.
+  if (slug.endsWith('-')) {
+    slug = slug.slice(0, -1);
+  }
+
   return slug;
+}
+
+// Validate a client-provided slug: every character must be allowed
+// (letters, numbers, hyphen, underscore). Empty strings are invalid.
+function isValidSlug(slug) {
+  if (typeof slug !== 'string' || slug.length === 0) {
+    return false;
+  }
+
+  for (let i = 0; i < slug.length; i++) {
+    if (!isAllowedSlugCharCode(slug.charCodeAt(i), true)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function appendRandomSuffix(baseSlug) {
@@ -35,5 +74,6 @@ function appendRandomSuffix(baseSlug) {
 
 module.exports = {
   generateSlug,
+  isValidSlug,
   appendRandomSuffix,
 };

@@ -1,17 +1,26 @@
 const crypto = require('crypto');
+const validator = require('@app-core/validator');
 const { throwAppError, ERROR_CODE } = require('@app-core/errors');
 const { appLogger } = require('@app-core/logger');
 const CreatorCardRepository = require('@app/repository/creator-card');
 const { CreatorCardMessages } = require('@app/messages');
 const serializeCard = require('./serialize-card');
 
-async function getCard(serviceData) {
+const spec = `root {
+  slug string<trim|minLength:1>
+  access_code? string
+}`;
+
+const parsedSpec = validator.parse(spec);
+
+async function getCard(serviceData, options = {}) {
+  const data = validator.validate(serviceData, parsedSpec);
   let response;
 
   try {
-    const { slug } = serviceData;
+    const { slug } = data;
     // eslint-disable-next-line camelcase
-    const { access_code } = serviceData;
+    const { access_code } = data;
 
     // Step 1: Check if card exists and is not deleted
     const card = await CreatorCardRepository.findOne({

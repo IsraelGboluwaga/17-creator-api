@@ -1,0 +1,7 @@
+{
+  "require": ["test/setup.js", "dotenv/config"],
+  "spec": ["test/**/*.test.js"],
+  "recursive": true,
+  "timeout": 10000,
+  "exit": true
+}

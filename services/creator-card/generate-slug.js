@@ -48,17 +48,18 @@ function generateSlug(title) {
 // Validate a client-provided slug: every character must be allowed
 // (letters, numbers, hyphen, underscore). Empty strings are invalid.
 function isValidSlug(slug) {
-  if (typeof slug !== 'string' || slug.length === 0) {
-    return false;
-  }
+  let valid = typeof slug === 'string' && slug.length > 0;
 
-  for (let i = 0; i < slug.length; i++) {
-    if (!isAllowedSlugCharCode(slug.charCodeAt(i), true)) {
-      return false;
+  if (valid) {
+    for (let i = 0; i < slug.length; i++) {
+      if (!isAllowedSlugCharCode(slug.charCodeAt(i), true)) {
+        valid = false;
+        break;
+      }
     }
   }
 
-  return true;
+  return valid;
 }
 
 function appendRandomSuffix(baseSlug) {

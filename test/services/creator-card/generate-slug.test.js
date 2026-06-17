@@ -31,13 +31,17 @@ describe('creator-card/generate-slug', () => {
 
     it('does not use any regular expressions internally', () => {
       // The codebase forbids regex for string manipulation; assert the source
-      // of the slug module contains no regex literals.
+      // of the slug module uses none of the regex-based string methods.
+      // (Checked with plain string scans to honor the no-regex rule here too.)
       const source = fs.readFileSync(
         path.resolve(__dirname, '../../../services/creator-card/generate-slug.js'),
         'utf-8'
       );
-      expect(source).to.not.match(/\.(test|match|exec)\(/);
-      expect(source).to.not.match(/\.(replace|split)\(\//);
+      expect(source.includes('.test(')).to.equal(false);
+      expect(source.includes('.match(')).to.equal(false);
+      expect(source.includes('.exec(')).to.equal(false);
+      expect(source.includes('.replace(/')).to.equal(false);
+      expect(source.includes('.split(/')).to.equal(false);
     });
   });
 
